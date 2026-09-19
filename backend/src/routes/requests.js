@@ -30,11 +30,25 @@ router.post(
   RequestController.createRequest
 );
 
+router.put(
+  '/:id',
+  authenticateToken,
+  requireRole('ADMIN', 'VOLUNTEER'),
+  RequestController.updateRequest
+);
+
 router.patch(
   '/:id/status',
   authenticateToken,
   requireRole('ADMIN', 'VOLUNTEER'),
-  RequestController.updateStatus
+  RequestController.updateRequest
+);
+
+router.delete(
+  '/:id',
+  authenticateToken,
+  requireRole('ADMIN'),
+  RequestController.deleteRequest
 );
 
 module.exports = router;

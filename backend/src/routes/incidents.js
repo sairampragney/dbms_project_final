@@ -5,7 +5,6 @@ const IncidentController = require('../controllers/incidentController');
 const { validateRequest } = require('../middleware/validate');
 const { authenticateToken, requireRole } = require('../middleware/auth');
 
-// Optional auth helper middleware for public reporting
 const optionalAuth = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   if (authHeader) {
@@ -30,15 +29,18 @@ router.post(
   IncidentController.createIncident
 );
 
-router.patch(
-  '/:id/status',
+router.put(
+  '/:id',
   authenticateToken,
   requireRole('ADMIN', 'VOLUNTEER'),
-  [
-    body('status').isIn(['REPORTED', 'VERIFIED', 'IN_PROGRESS', 'RESOLVED', 'DISMISSED']).withMessage('Invalid status'),
-    validateRequest
-  ],
-  IncidentController.updateStatus
+  IncidentController.updateIncident
+);
+
+router.delete(
+  '/:id',
+  authenticateToken,
+  requireRole('ADMIN'),
+  IncidentController.deleteIncident
 );
 
 module.exports = router;

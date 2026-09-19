@@ -12,6 +12,13 @@ router.get(
   ResponseController.getResponses
 );
 
+router.get(
+  '/:id',
+  authenticateToken,
+  requireRole('ADMIN', 'VOLUNTEER'),
+  ResponseController.getResponseById
+);
+
 router.post(
   '/',
   authenticateToken,
@@ -25,15 +32,25 @@ router.post(
   ResponseController.assignResponse
 );
 
+router.put(
+  '/:id',
+  authenticateToken,
+  requireRole('ADMIN', 'VOLUNTEER'),
+  ResponseController.updateResponse
+);
+
 router.patch(
   '/:id',
   authenticateToken,
   requireRole('ADMIN', 'VOLUNTEER'),
-  [
-    body('status').isIn(['ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'ABANDONED']).withMessage('Invalid status'),
-    validateRequest
-  ],
-  ResponseController.updateResponseStatus
+  ResponseController.updateResponse
+);
+
+router.delete(
+  '/:id',
+  authenticateToken,
+  requireRole('ADMIN'),
+  ResponseController.deleteResponse
 );
 
 module.exports = router;

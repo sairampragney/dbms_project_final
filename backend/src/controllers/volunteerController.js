@@ -3,22 +3,49 @@ const pool = require('../config/db');
 class VolunteerController {
   static async getVolunteers(req, res, next) {
     try {
-      const { availabilityStatus } = req.query;
-      let sql = `
-        SELECT v.*, u.full_name, u.email, u.phone
-        FROM volunteers v
-        JOIN users u ON v.user_id = u.id
-        WHERE 1=1
-      `;
+      const { availabilityStatus, search, page = 1, limit = 20, sortBy = 'created_at', order = 'DESC' } = req.query;
+
+      let whereClause = ' WHERE 1=1';
       const params = [];
 
       if (availabilityStatus) {
-        sql += ' AND v.availability_status = ?';
+        whereClause += ' AND v.availability_status = ?';
         params.push(availabilityStatus);
       }
+      if (search) {
+        whereClause += ' AND (v.skills LIKE ? OR v.operating_area LIKE ? OR u.full_name LIKE ? OR u.email LIKE ?)';
+        const searchTerm = `%${search}%`;
+        params.push(searchTerm, searchTerm, searchTerm, searchTerm);
+      }
 
-      sql += ' ORDER BY v.created_at DESC';
-      const [rows] = await pool.query(sql, params);
+      const countSql = `
+        SELECT COUNT(*) as total
+        FROM volunteers v
+        JOIN users u ON v.user_id = u.id
+        ${whereClause}
+      `;
+      const [countResult] = await pool.query(countSql, params);
+      const total = countResult[0].total;
+
+      const pageNum = Math.max(1, parseInt(page, 10));
+      const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10)));
+      const offset = (pageNum - 1) * limitNum;
+
+      const validSortColumns = ['created_at', 'availability_status', 'operating_area'];
+      const sortColumn = validSortColumns.includes(sortBy) ? `v.${sortBy}` : 'v.created_at';
+      const sortOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
+      const querySql = `
+        SELECT v.*, u.full_name, u.email, u.phone
+        FROM volunteers v
+        JOIN users u ON v.user_id = u.id
+        ${whereClause}
+        ORDER BY ${sortColumn} ${sortOrder}
+        LIMIT ? OFFSET ?
+      `;
+      const queryParams = [...params, limitNum, offset];
+
+      const [rows] = await pool.query(querySql, queryParams);
 
       res.status(200).json({
         success: true,
@@ -33,7 +60,52 @@ class VolunteerController {
           availabilityStatus: r.availability_status,
           createdAt: r.created_at,
           updatedAt: r.updated_at
-        }))
+        })),
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.ceil(total / limitNum) || 1
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getVolunteerById(req, res, next) {
+    try {
+      const { id } = req.params;
+      const [rows] = await pool.query(
+        `SELECT v.*, u.full_name, u.email, u.phone
+         FROM volunteers v
+         JOIN users u ON v.user_id = u.id
+         WHERE v.id = ?`,
+        [id]
+      );
+
+      if (rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: { code: 'NOT_FOUND', message: 'Volunteer profile not found' }
+        });
+      }
+
+      const r = rows[0];
+      res.status(200).json({
+        success: true,
+        data: {
+          id: r.id,
+          userId: r.user_id,
+          fullName: r.full_name,
+          email: r.email,
+          phone: r.phone,
+          skills: r.skills,
+          operatingArea: r.operating_area,
+          availabilityStatus: r.availability_status,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at
+        }
       });
     } catch (err) {
       next(err);
@@ -43,7 +115,7 @@ class VolunteerController {
   static async registerVolunteer(req, res, next) {
     try {
       const { skills, operatingArea, availabilityStatus } = req.body;
-      const userId = req.user.id;
+      const userId = req.user ? req.user.id : 1;
 
       const [existing] = await pool.query('SELECT * FROM volunteers WHERE user_id = ?', [userId]);
       if (existing.length > 0) {
@@ -63,7 +135,6 @@ class VolunteerController {
           [userId, skills, operatingArea, availabilityStatus || 'AVAILABLE']
         );
 
-        // Update user's system role to VOLUNTEER
         await connection.query('UPDATE users SET role = "VOLUNTEER" WHERE id = ? AND role = "CITIZEN"', [userId]);
 
         await connection.commit();
@@ -88,15 +159,47 @@ class VolunteerController {
     }
   }
 
-  static async updateAvailability(req, res, next) {
+  static async updateVolunteer(req, res, next) {
     try {
       const { id } = req.params;
-      const { availabilityStatus } = req.body;
+      const { skills, operatingArea, availabilityStatus } = req.body;
 
-      const [result] = await pool.query(
-        'UPDATE volunteers SET availability_status = ? WHERE id = ?',
-        [availabilityStatus, id]
+      const [rows] = await pool.query('SELECT * FROM volunteers WHERE id = ?', [id]);
+      if (rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: { code: 'NOT_FOUND', message: 'Volunteer profile not found' }
+        });
+      }
+
+      const existing = rows[0];
+      await pool.query(
+        `UPDATE volunteers SET skills = ?, operating_area = ?, availability_status = ? WHERE id = ?`,
+        [
+          skills !== undefined ? skills : existing.skills,
+          operatingArea !== undefined ? operatingArea : existing.operating_area,
+          availabilityStatus !== undefined ? availabilityStatus : existing.availability_status,
+          id
+        ]
       );
+
+      res.status(200).json({
+        success: true,
+        message: 'Volunteer profile updated successfully',
+        data: {
+          id,
+          availabilityStatus: availabilityStatus !== undefined ? availabilityStatus : existing.availability_status
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async deleteVolunteer(req, res, next) {
+    try {
+      const { id } = req.params;
+      const [result] = await pool.query('DELETE FROM volunteers WHERE id = ?', [id]);
 
       if (result.affectedRows === 0) {
         return res.status(404).json({
@@ -107,8 +210,7 @@ class VolunteerController {
 
       res.status(200).json({
         success: true,
-        message: 'Volunteer availability updated',
-        data: { id, availabilityStatus }
+        message: 'Volunteer profile deleted successfully'
       });
     } catch (err) {
       next(err);

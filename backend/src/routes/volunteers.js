@@ -3,9 +3,10 @@ const { body } = require('express-validator');
 const router = express.Router();
 const VolunteerController = require('../controllers/volunteerController');
 const { validateRequest } = require('../middleware/validate');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, requireRole } = require('../middleware/auth');
 
 router.get('/', VolunteerController.getVolunteers);
+router.get('/:id', VolunteerController.getVolunteerById);
 
 router.post(
   '/',
@@ -19,6 +20,12 @@ router.post(
   VolunteerController.registerVolunteer
 );
 
+router.put(
+  '/:id',
+  authenticateToken,
+  VolunteerController.updateVolunteer
+);
+
 router.patch(
   '/:id/status',
   authenticateToken,
@@ -26,7 +33,14 @@ router.patch(
     body('availabilityStatus').isIn(['AVAILABLE', 'BUSY', 'UNAVAILABLE']).withMessage('Invalid availability status'),
     validateRequest
   ],
-  VolunteerController.updateAvailability
+  VolunteerController.updateVolunteer
+);
+
+router.delete(
+  '/:id',
+  authenticateToken,
+  requireRole('ADMIN'),
+  VolunteerController.deleteVolunteer
 );
 
 module.exports = router;

@@ -1,7 +1,7 @@
 # REST API Design Specification
 
 ## Project: Disaster Alert and Community Response App
-**Base API URL**: `/api/v1`
+**Supported API Prefixes**: `/api` and `/api/v1`
 
 ---
 
@@ -11,227 +11,68 @@
 * `Content-Type: application/json`
 * `Authorization: Bearer <JWT_TOKEN>` (Required for protected endpoints)
 
-### 1.2 Standard Response Format
-#### Success Response (`200 OK`, `201 Created`)
+### 1.2 Pagination, Sorting & Filtering
+Standard query parameters supported across list endpoints:
+* `page`: Page number (default: `1`)
+* `limit`: Page size limit (default: `20`, max: `100`)
+* `search`: Keyword string for text fields (title, location, name, description)
+* `status`: Exact filter for status enum
+* `sortBy`: Field name to sort by (e.g. `createdAt`, `severity`, `priority`, `capacity`)
+* `order`: `ASC` or `DESC` (default: `DESC`)
+
+### 1.3 Standard Response Envelope
 ```json
 {
   "success": true,
-  "message": "Resource fetched/created successfully",
-  "data": { ... }
-}
-```
-
-#### Error Response (`400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Server Error`)
-```json
-{
-  "success": false,
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Invalid location or disaster type specified",
-    "details": [
-      {
-        "field": "severity",
-        "issue": "Must be one of LOW, MEDIUM, HIGH, CRITICAL"
-      }
-    ]
+  "message": "Resource operation completed successfully",
+  "data": { ... },
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 45,
+    "totalPages": 3
   }
 }
 ```
 
 ---
 
-## 2. API Endpoints Overview
+## 2. API Endpoints Matrix
 
-| Module | Method | Route | Access | Description |
+| Module | Method | Route / Aliases | Access | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **Health** | `GET` | `/health` | Public | System health status & database ping |
-| **Auth** | `POST` | `/auth/register` | Public | Register new user account |
-| **Auth** | `POST` | `/auth/login` | Public | Login & obtain JWT token |
-| **Auth** | `GET` | `/auth/me` | Authenticated | Get current authenticated user profile |
-| **Dashboard**| `GET` | `/dashboard/stats` | Public | Aggregate database stats |
-| **Alerts** | `GET` | `/alerts` | Public | List disaster alerts (filtered) |
-| **Alerts** | `GET` | `/alerts/:id` | Public | Get single disaster alert details |
-| **Alerts** | `POST` | `/alerts` | ADMIN | Create new disaster alert |
-| **Alerts** | `PUT` | `/alerts/:id` | ADMIN | Update disaster alert |
-| **Alerts** | `DELETE`| `/alerts/:id` | ADMIN | Cancel/Remove disaster alert |
-| **Incidents**| `GET` | `/incidents` | Public | List reported incidents |
-| **Incidents**| `GET` | `/incidents/:id` | Public | Get incident details |
-| **Incidents**| `POST` | `/incidents` | Public/Auth | Report a new disaster incident |
-| **Incidents**| `PATCH`| `/incidents/:id/status` | ADMIN/VOLUNTEER | Update incident status |
-| **Requests** | `GET` | `/requests` | Public | List emergency assistance requests |
-| **Requests** | `GET` | `/requests/:id` | Public | Get emergency request details |
-| **Requests** | `POST` | `/requests` | Public/Auth | Submit emergency assistance request |
-| **Requests** | `PATCH`| `/requests/:id/status` | ADMIN | Update request priority/status |
-| **Locations**| `GET` | `/locations` | Public | List safe locations & shelters |
-| **Locations**| `GET` | `/locations/:id` | Public | Get single shelter details |
-| **Locations**| `POST` | `/locations` | ADMIN | Add new safe location |
-| **Locations**| `PATCH`| `/locations/:id/occupancy`| ADMIN | Update shelter current occupancy |
-| **Volunteers**| `GET` | `/volunteers` | Public | List registered community responders |
-| **Volunteers**| `POST` | `/volunteers` | Authenticated | Register current user as volunteer |
-| **Volunteers**| `PATCH`| `/volunteers/:id/status` | Authenticated | Update availability status |
-| **Responses** | `GET` | `/responses` | ADMIN/VOLUNTEER | List response activities |
-| **Responses** | `POST` | `/responses` | ADMIN/VOLUNTEER | Assign volunteer / Record response action |
-| **Responses** | `PATCH`| `/responses/:id` | ADMIN/VOLUNTEER | Update response action status |
-
----
-
-## 3. Detailed Endpoint Specifications
-
-### 3.1 Health Check
-* **Route**: `GET /api/v1/health`
-* **Response**:
-  ```json
-  {
-    "success": true,
-    "data": {
-      "status": "UP",
-      "timestamp": "2025-02-17T12:00:00Z",
-      "database": "CONNECTED"
-    }
-  }
-  ```
-
-### 3.2 Real-Time Dashboard Statistics
-* **Route**: `GET /api/v1/dashboard/stats`
-* **Response**:
-  ```json
-  {
-    "success": true,
-    "data": {
-      "activeAlerts": 3,
-      "openIncidents": 12,
-      "pendingRequests": 5,
-      "openShelters": 8,
-      "remainingShelterCapacity": 450,
-      "availableVolunteers": 24
-    }
-  }
-  ```
-
-### 3.3 Disaster Alerts API
-#### `GET /api/v1/alerts`
-* **Query Parameters**:
-  * `status`: `ACTIVE` \| `RESOLVED` \| `CANCELLED` (default: `ACTIVE`)
-  * `severity`: `LOW` \| `MEDIUM` \| `HIGH` \| `CRITICAL`
-  * `disasterType`: `FLOOD` \| `FIRE` \| `EARTHQUAKE` \| `STORM` \| `CHEMICAL` \| `OTHER`
-* **Response**:
-  ```json
-  {
-    "success": true,
-    "data": [
-      {
-        "id": 1,
-        "title": "Severe Flash Flood Warning",
-        "disasterType": "FLOOD",
-        "severity": "CRITICAL",
-        "affectedLocation": "Downtown River District",
-        "description": "Rising water levels along main riverbank. Seek higher ground immediately.",
-        "status": "ACTIVE",
-        "createdAt": "2025-02-17T10:00:00Z"
-      }
-    ]
-  }
-  ```
-
-#### `POST /api/v1/alerts` (ADMIN only)
-* **Request Body**:
-  ```json
-  {
-    "title": "Severe Flash Flood Warning",
-    "disasterType": "FLOOD",
-    "severity": "CRITICAL",
-    "affectedLocation": "Downtown River District",
-    "description": "Rising water levels along main riverbank. Seek higher ground immediately."
-  }
-  ```
-* **Response (`201 Created`)**:
-  ```json
-  {
-    "success": true,
-    "message": "Disaster alert published successfully",
-    "data": { "id": 1, "title": "Severe Flash Flood Warning", "status": "ACTIVE" }
-  }
-  ```
-
-### 3.4 Incident Reporting API
-#### `POST /api/v1/incidents`
-* **Request Body**:
-  ```json
-  {
-    "disasterType": "FIRE",
-    "location": "123 Main Street, Sector 4",
-    "latitude": 37.7749,
-    "longitude": -122.4194,
-    "severity": "HIGH",
-    "description": "Transformer burst caused small structural fire near apartment building."
-  }
-  ```
-* **Response (`201 Created`)**:
-  ```json
-  {
-    "success": true,
-    "message": "Incident reported successfully",
-    "data": { "id": 4, "status": "REPORTED" }
-  }
-  ```
-
-### 3.5 Emergency Assistance Requests API
-#### `POST /api/v1/requests`
-* **Request Body**:
-  ```json
-  {
-    "requestType": "RESCUE",
-    "priority": "CRITICAL",
-    "location": "Block B, Apartment 302, River Road",
-    "peopleAffected": 4,
-    "contactPhone": "+15550192834",
-    "description": "Trapped on 2nd floor balcony due to flood water."
-  }
-  ```
-* **Response (`201 Created`)**:
-  ```json
-  {
-    "success": true,
-    "message": "Emergency request submitted successfully",
-    "data": { "id": 2, "status": "PENDING" }
-  }
-  ```
-
-### 3.6 Safe Locations API
-#### `GET /api/v1/locations`
-* **Query Parameters**:
-  * `status`: `OPEN` \| `FULL` \| `CLOSED`
-* **Response**:
-  ```json
-  {
-    "success": true,
-    "data": [
-      {
-        "id": 1,
-        "name": "Central High School Gym Shelter",
-        "address": "500 Education Way",
-        "capacity": 200,
-        "currentOccupancy": 45,
-        "facilities": "Medical Aid, Generator Power, Food Supply, Pet Friendly",
-        "status": "OPEN",
-        "contactPhone": "+15559876543"
-      }
-    ]
-  }
-  ```
-
-#### `PATCH /api/v1/locations/:id/occupancy` (ADMIN)
-* **Request Body**:
-  ```json
-  {
-    "currentOccupancy": 50
-  }
-  ```
-* **Response**:
-  ```json
-  {
-    "success": true,
-    "message": "Shelter occupancy updated",
-    "data": { "id": 1, "currentOccupancy": 50, "status": "OPEN" }
-  }
-  ```
+| **Health** | `GET` | `/api/health` | Public | System health status & DB pool check |
+| **Auth** | `POST` | `/api/auth/register` | Public | Register user account |
+| **Auth** | `POST` | `/api/auth/login` | Public | Login & receive JWT |
+| **Auth** | `GET` | `/api/auth/me` | Authenticated | Current user profile |
+| **Dashboard**| `GET` | `/api/dashboard/stats` | Public | Real-time aggregate DB metrics |
+| **Alerts** | `GET` | `/api/alerts` | Public | List disaster alerts (paginated/filtered) |
+| **Alerts** | `GET` | `/api/alerts/:id` | Public | Single alert details |
+| **Alerts** | `POST` | `/api/alerts` | ADMIN | Create disaster alert |
+| **Alerts** | `PUT` | `/api/alerts/:id` | ADMIN | Update disaster alert |
+| **Alerts** | `DELETE`| `/api/alerts/:id` | ADMIN | Remove/Cancel disaster alert |
+| **Incidents**| `GET` | `/api/incidents` | Public | List reported incidents |
+| **Incidents**| `GET` | `/api/incidents/:id` | Public | Single incident details |
+| **Incidents**| `POST` | `/api/incidents` | Public/Auth | Report new disaster incident |
+| **Incidents**| `PUT` | `/api/incidents/:id` | ADMIN/VOLUNTEER | Full update incident |
+| **Incidents**| `DELETE`| `/api/incidents/:id` | ADMIN | Delete incident record |
+| **Requests** | `GET` | `/api/emergency-requests` (or `/api/requests`) | Public | List emergency assistance requests |
+| **Requests** | `GET` | `/api/emergency-requests/:id` | Public | Single request details |
+| **Requests** | `POST` | `/api/emergency-requests` | Public/Auth | Submit emergency request |
+| **Requests** | `PUT` | `/api/emergency-requests/:id` | ADMIN/VOLUNTEER | Update emergency request |
+| **Requests** | `DELETE`| `/api/emergency-requests/:id` | ADMIN | Delete emergency request |
+| **Locations**| `GET` | `/api/safe-locations` (or `/api/locations`) | Public | List safe location shelters |
+| **Locations**| `GET` | `/api/safe-locations/:id` | Public | Single shelter details |
+| **Locations**| `POST` | `/api/safe-locations` | ADMIN | Create safe location shelter |
+| **Locations**| `PUT` | `/api/safe-locations/:id` | ADMIN | Update shelter details/occupancy |
+| **Locations**| `DELETE`| `/api/safe-locations/:id` | ADMIN | Delete safe location shelter |
+| **Volunteers**| `GET` | `/api/volunteers` | Public | List registered volunteers |
+| **Volunteers**| `GET` | `/api/volunteers/:id` | Public | Single volunteer details |
+| **Volunteers**| `POST` | `/api/volunteers` | Authenticated | Register current user as volunteer |
+| **Volunteers**| `PUT` | `/api/volunteers/:id` | Authenticated/ADMIN | Update volunteer profile/status |
+| **Volunteers**| `DELETE`| `/api/volunteers/:id` | ADMIN | Remove volunteer profile |
+| **Responses** | `GET` | `/api/response-records` (or `/api/responses`) | ADMIN/VOLUNTEER | List response activities |
+| **Responses** | `GET` | `/api/response-records/:id` | ADMIN/VOLUNTEER | Single response record details |
+| **Responses** | `POST` | `/api/response-records` | ADMIN/VOLUNTEER | Assign volunteer / Record response |
+| **Responses** | `PUT` | `/api/response-records/:id` | ADMIN/VOLUNTEER | Update response record |
+| **Responses** | `DELETE`| `/api/response-records/:id` | ADMIN | Delete response record |

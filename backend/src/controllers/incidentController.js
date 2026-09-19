@@ -3,21 +3,44 @@ const pool = require('../config/db');
 class IncidentController {
   static async getIncidents(req, res, next) {
     try {
-      const { status, disasterType } = req.query;
-      let sql = 'SELECT * FROM incidents WHERE 1=1';
+      const { status, disasterType, severity, search, page = 1, limit = 20, sortBy = 'created_at', order = 'DESC' } = req.query;
+
+      let whereClause = ' WHERE 1=1';
       const params = [];
 
       if (status) {
-        sql += ' AND status = ?';
+        whereClause += ' AND status = ?';
         params.push(status);
       }
       if (disasterType) {
-        sql += ' AND disaster_type = ?';
+        whereClause += ' AND disaster_type = ?';
         params.push(disasterType);
       }
+      if (severity) {
+        whereClause += ' AND severity = ?';
+        params.push(severity);
+      }
+      if (search) {
+        whereClause += ' AND (location LIKE ? OR description LIKE ?)';
+        const searchTerm = `%${search}%`;
+        params.push(searchTerm, searchTerm);
+      }
 
-      sql += ' ORDER BY created_at DESC';
-      const [rows] = await pool.query(sql, params);
+      const [countResult] = await pool.query(`SELECT COUNT(*) as total FROM incidents${whereClause}`, params);
+      const total = countResult[0].total;
+
+      const pageNum = Math.max(1, parseInt(page, 10));
+      const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10)));
+      const offset = (pageNum - 1) * limitNum;
+
+      const validSortColumns = ['created_at', 'severity', 'status', 'disaster_type'];
+      const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'created_at';
+      const sortOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
+      const querySql = `SELECT * FROM incidents${whereClause} ORDER BY ${sortColumn} ${sortOrder} LIMIT ? OFFSET ?`;
+      const queryParams = [...params, limitNum, offset];
+
+      const [rows] = await pool.query(querySql, queryParams);
 
       res.status(200).json({
         success: true,
@@ -33,7 +56,13 @@ class IncidentController {
           status: r.status,
           createdAt: r.created_at,
           updatedAt: r.updated_at
-        }))
+        })),
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.ceil(total / limitNum) || 1
+        }
       });
     } catch (err) {
       next(err);
@@ -105,12 +134,51 @@ class IncidentController {
     }
   }
 
-  static async updateStatus(req, res, next) {
+  static async updateIncident(req, res, next) {
     try {
       const { id } = req.params;
-      const { status } = req.body;
+      const { disasterType, location, latitude, longitude, severity, description, status } = req.body;
 
-      const [result] = await pool.query('UPDATE incidents SET status = ? WHERE id = ?', [status, id]);
+      const [rows] = await pool.query('SELECT * FROM incidents WHERE id = ?', [id]);
+      if (rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: { code: 'NOT_FOUND', message: 'Incident not found' }
+        });
+      }
+
+      const existing = rows[0];
+      await pool.query(
+        `UPDATE incidents SET
+           disaster_type = ?, location = ?, latitude = ?, longitude = ?, severity = ?, description = ?, status = ?
+         WHERE id = ?`,
+        [
+          disasterType !== undefined ? disasterType : existing.disaster_type,
+          location !== undefined ? location : existing.location,
+          latitude !== undefined ? latitude : existing.latitude,
+          longitude !== undefined ? longitude : existing.longitude,
+          severity !== undefined ? severity : existing.severity,
+          description !== undefined ? description : existing.description,
+          status !== undefined ? status : existing.status,
+          id
+        ]
+      );
+
+      res.status(200).json({
+        success: true,
+        message: 'Incident updated successfully',
+        data: { id, status: status !== undefined ? status : existing.status }
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async deleteIncident(req, res, next) {
+    try {
+      const { id } = req.params;
+      const [result] = await pool.query('DELETE FROM incidents WHERE id = ?', [id]);
+
       if (result.affectedRows === 0) {
         return res.status(404).json({
           success: false,
@@ -120,8 +188,7 @@ class IncidentController {
 
       res.status(200).json({
         success: true,
-        message: 'Incident status updated successfully',
-        data: { id, status }
+        message: 'Incident record deleted successfully'
       });
     } catch (err) {
       next(err);

@@ -21,6 +21,13 @@ router.post(
   LocationController.createLocation
 );
 
+router.put(
+  '/:id',
+  authenticateToken,
+  requireRole('ADMIN'),
+  LocationController.updateLocation
+);
+
 router.patch(
   '/:id/occupancy',
   authenticateToken,
@@ -29,7 +36,14 @@ router.patch(
     body('currentOccupancy').optional().isInt({ min: 0 }).withMessage('Current occupancy must be a non-negative integer'),
     validateRequest
   ],
-  LocationController.updateOccupancy
+  LocationController.updateLocation
+);
+
+router.delete(
+  '/:id',
+  authenticateToken,
+  requireRole('ADMIN'),
+  LocationController.deleteLocation
 );
 
 module.exports = router;
