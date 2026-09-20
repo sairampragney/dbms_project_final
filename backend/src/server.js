@@ -1,7 +1,17 @@
 const app = require('./app');
 const pool = require('./config/db');
+const initDb = require('./config/initDb');
 
 const PORT = process.env.PORT || 5000;
+
+// Initialize MySQL database schema & seed data prior to starting the HTTP server
+initDb()
+  .then(() => {
+    console.log('[Server] Database auto-initialization check completed.');
+  })
+  .catch((err) => {
+    console.error('[Server] Non-fatal database initialization warning:', err.message);
+  });
 
 const server = app.listen(PORT, () => {
   console.log(`====================================================`);
