@@ -17,11 +17,40 @@ The platform provides a centralized, real-time coordination tool for three disti
 
 ## 🛠️ Technology Stack
 
-* **Frontend**: React 18, Vite, React Router v6, Responsive CSS / Component Architecture.
-* **Backend**: Node.js, Express.js REST API, JWT Authentication, Role-Based Access Control (RBAC).
+* **Frontend**: React 18, Vite, React Router v6, Responsive CSS System, Axios.
+* **Backend**: Node.js, Express.js REST API, JWT Authentication, Role-Based Access Control (RBAC), Helmet, Express Rate Limit.
 * **Database**: MySQL 8.0+ normalized relational database (3NF), InnoDB engine, parameterized connection pooling, indexes, views, triggers.
-* **DevOps & Infrastructure**: Docker, Docker Compose, environment configuration (`.env`).
-* **Deployment Architecture**: Vercel (Frontend), Render (Backend Web Service), Managed MySQL (Database).
+* **DevOps & Infrastructure**: Docker, Docker Compose, Nginx, environment configuration (`.env`).
+* **Deployment Architecture**: Vercel (Frontend SPA), Render (Backend Express Web Service), Managed MySQL (Database).
+
+---
+
+## 🚀 Docker Quick Start (Local Development & Containerization)
+
+The entire application stack (Frontend, Backend, MySQL Database) can be launched locally using Docker Compose:
+
+### 1. Prerequisites
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose)
+
+### 2. Single-Command Launch
+```bash
+# Clone the repository
+git clone https://github.com/sairampragney/dbms_project_final.git
+cd dbms_project_final
+
+# Build and start all containers in detached mode
+docker-compose up -d --build
+```
+
+### 3. Container Services & Ports
+* **Frontend SPA (Nginx)**: `http://localhost:3000`
+* **Backend REST API (Express)**: `http://localhost:5000/api/v1`
+* **MySQL Database**: `localhost:3306` (Database: `disaster_response_db`)
+
+### 4. Stopping Container Services
+```bash
+docker-compose down -v
+```
 
 ---
 
@@ -32,6 +61,7 @@ The platform provides a centralized, real-time coordination tool for three disti
 ├── PRD.md                  # Product Requirements Document
 ├── AGENTS.md               # Guidelines & Rules for AI Agents (Jules)
 ├── README.md               # Project Overview & Setup Guide
+├── docker-compose.yml      # Multi-container Docker Compose file
 ├── .env.example            # Environment variables template
 ├── .gitignore              # Git ignore rules
 ├── docs/                   # Architecture & System Specifications
@@ -39,9 +69,18 @@ The platform provides a centralized, real-time coordination tool for three disti
 │   ├── database-design.md  # 3NF Relational Schema, Tables, Views & Triggers
 │   ├── api-design.md       # REST API Endpoints Specification
 │   └── development-plan.md # 10-Phase Implementation Roadmap
-├── database/               # MySQL Schema & Seeds (To be populated in Phase 2)
-├── backend/                # Express REST API Server (To be created in Phase 3)
-└── frontend/               # React / Vite SPA (To be created in Phase 4)
+├── database/               # MySQL Schema & Seed SQL scripts
+│   ├── schema.sql          # DDL table creation, views, triggers, constraints
+│   ├── seed.sql            # Seed demo data
+│   └── validate_db.py      # Schema syntax verification script
+├── backend/                # Express REST API Server
+│   ├── src/                # Controllers, routes, models, middleware
+│   ├── tests/              # Automated API & security integration tests
+│   └── Dockerfile          # Backend container build script
+└── frontend/               # React / Vite Single Page Application
+    ├── src/                # Pages, components, services, context
+    ├── nginx.conf          # Nginx production configuration
+    └── Dockerfile          # Multi-stage frontend container build script
 ```
 
 ---
@@ -56,27 +95,6 @@ Detailed technical documentation is available in the `docs/` folder:
 * **[Database Design (`docs/database-design.md`)](./docs/database-design.md)**: Complete database schema, normalization analysis, entity relationships, views, and triggers.
 * **[API Design (`docs/api-design.md`)](./docs/api-design.md)**: RESTful routes, request payloads, response envelopes, and HTTP status codes.
 * **[Development Roadmap (`docs/development-plan.md`)](./docs/development-plan.md)**: 10-phase sequential development plan.
-
----
-
-## 🚀 Quick Start (Local Development Preview)
-
-### Prerequisites
-* [Node.js (v18+)](https://nodejs.org/)
-* [Docker & Docker Compose](https://www.docker.com/) (Recommended) or local MySQL 8.0+ server
-
-### Local Docker Environment
-```bash
-# 1. Clone the repository
-git clone https://github.com/sairampragney/dbms_project_final.git
-cd dbms_project_final
-
-# 2. Copy environment file
-cp .env.example .env
-
-# 3. Start local services using Docker Compose
-docker-compose up -d --build
-```
 
 ---
 
