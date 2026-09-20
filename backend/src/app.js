@@ -19,41 +19,57 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-// Security Header Middlewares
-app.use(helmet());
+// Disable X-Powered-By header to prevent technology exposure
+app.disable('x-powered-by');
+
+// Security Header Middlewares via Helmet
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
 
 // CORS Configuration
 const allowedOrigins = [
   process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'http://localhost:3000',
   'http://localhost:5173'
 ];
+
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else if (process.env.NODE_ENV !== 'production') {
-        callback(null, true); // Allow non-whitelisted origins in dev/testing mode
+        callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS origin restriction'));
+        callback(new Error('CORS origin policy restriction'));
       }
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
   })
 );
 
-// Rate Limiter
-const limiter = rateLimit({
+// Global API Rate Limiter
+const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 500,
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: {
+      code: 'TOO_MANY_REQUESTS',
+      message: 'Too many requests from this IP, please try again after 15 minutes'
+    }
+  }
 });
-app.use(limiter);
+app.use(globalLimiter);
 
 // Body Parsing
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Express Router Setup
 const createApiRouter = () => {
@@ -63,7 +79,6 @@ const createApiRouter = () => {
   router.use('/auth', authRoutes);
   router.use('/dashboard', dashboardRoutes);
 
-  // Resource routes (Plural & Hyphenated Aliases)
   router.use('/alerts', alertRoutes);
   router.use('/incidents', incidentRoutes);
   router.use('/requests', requestRoutes);
@@ -76,7 +91,6 @@ const createApiRouter = () => {
   return router;
 };
 
-// Mount API router on both /api and /api/v1 prefixes
 app.use('/api', createApiRouter());
 app.use('/api/v1', createApiRouter());
 
@@ -91,7 +105,7 @@ app.use((req, res) => {
   });
 });
 
-// Global Error Handler Middleware
+// Centralized Error Handler Middleware
 app.use(errorHandler);
 
 module.exports = app;

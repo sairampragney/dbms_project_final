@@ -15,7 +15,22 @@ const authenticateToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretjwtkey_change_in_production');
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'supersecretjwtkey_change_in_production',
+      { algorithms: ['HS256'] }
+    );
+
+    if (!decoded || !decoded.id || !decoded.role) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'INVALID_TOKEN_CLAIMS',
+          message: 'Access token contains invalid user payload'
+        }
+      });
+    }
+
     req.user = decoded;
     next();
   } catch (err) {
@@ -23,7 +38,7 @@ const authenticateToken = (req, res, next) => {
       success: false,
       error: {
         code: 'INVALID_TOKEN',
-        message: 'Invalid or expired access token'
+        message: err.name === 'TokenExpiredError' ? 'Access token has expired' : 'Invalid access token'
       }
     });
   }
@@ -46,7 +61,7 @@ const requireRole = (...allowedRoles) => {
         success: false,
         error: {
           code: 'FORBIDDEN',
-          message: 'Insufficient permissions for this operation'
+          message: 'Access denied: insufficient role permissions'
         }
       });
     }
