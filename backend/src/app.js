@@ -30,19 +30,30 @@ app.use(helmet({
 
 // CORS Configuration
 const allowedOrigins = [
-  process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'http://localhost:3000',
+  process.env.CORS_ORIGIN,
+  process.env.FRONTEND_URL,
+  'https://dbms-project-final.vercel.app',
+  'http://localhost:3000',
   'http://localhost:5173'
-];
+].filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else if (process.env.NODE_ENV !== 'production') {
+      if (!origin) return callback(null, true);
+
+      const isAllowed = allowedOrigins.some(allowed => {
+        if (allowed === origin) return true;
+        // Allow Vercel preview/deployment subdomains if matching project name pattern
+        if (origin.endsWith('.vercel.app') && origin.includes('dbms-project-final')) return true;
+        return false;
+      });
+
+      if (isAllowed || process.env.NODE_ENV !== 'production') {
         callback(null, true);
       } else {
-        callback(new Error('CORS origin policy restriction'));
+        console.warn(`[CORS Blocked] Origin: ${origin}. Allowed Origins: ${allowedOrigins.join(', ')}`);
+        callback(null, false);
       }
     },
     credentials: true,
