@@ -15,12 +15,12 @@ const authenticateToken = (req, res, next) => {
   }
 
   try {
-    const jwtSecret = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? null : 'supersecretjwtkey_change_in_production');
+    const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret) {
-      console.error('[FATAL] JWT_SECRET environment variable is missing in production environment');
+      console.error('[FATAL] JWT_SECRET environment variable is missing');
       return res.status(500).json({
         success: false,
-        error: { code: 'SERVER_CONFIG_ERROR', message: 'Authentication server misconfiguration' }
+        error: { code: 'SERVER_CONFIG_ERROR', message: 'Authentication server misconfiguration: JWT_SECRET environment variable missing' }
       });
     }
 

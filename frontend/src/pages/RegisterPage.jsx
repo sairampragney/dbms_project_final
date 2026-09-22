@@ -91,7 +91,7 @@ export default function RegisterPage() {
             <input
               type="text"
               className="form-control"
-              placeholder="+1 (555) 000-0000"
+              placeholder="+91 98765 43210"
               value={formData.phone}
               onChange={(e) => setForm({ ...formData, phone: e.target.value })}
             />

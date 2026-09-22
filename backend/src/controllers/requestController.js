@@ -8,6 +8,12 @@ class RequestController {
       let whereClause = ' WHERE 1=1';
       const params = [];
 
+      // IDOR protection: Non-admin citizens only see their own requests
+      if (req.user && req.user.role === 'CITIZEN') {
+        whereClause += ' AND requester_id = ?';
+        params.push(req.user.id);
+      }
+
       if (status) {
         whereClause += ' AND status = ?';
         params.push(status);
@@ -81,6 +87,15 @@ class RequestController {
       }
 
       const r = rows[0];
+
+      // IDOR protection check: Citizen can only access their own request
+      if (req.user && req.user.role === 'CITIZEN' && r.requester_id !== req.user.id) {
+        return res.status(403).json({
+          success: false,
+          error: { code: 'FORBIDDEN', message: 'Access denied: You do not have permission to view this request' }
+        });
+      }
+
       res.status(200).json({
         success: true,
         data: {

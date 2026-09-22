@@ -216,7 +216,7 @@ export default function RequestsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div className="form-group">
               <label>Direct Contact Phone</label>
-              <input type="text" className="form-control" required value={formData.contactPhone} onChange={(e) => setForm({ ...formData, contactPhone: e.target.value })} placeholder="+1 (555) 019-2834" />
+              <input type="text" className="form-control" required value={formData.contactPhone} onChange={(e) => setForm({ ...formData, contactPhone: e.target.value })} placeholder="+91 98765 43210" />
             </div>
             <div className="form-group">
               <label>People Affected</label>
