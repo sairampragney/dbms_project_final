@@ -4,12 +4,13 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://dbms-project-
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-// Interceptor to attach JWT bearer token
+// Request Interceptor: Attach JWT bearer token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('disaster_app_token');
@@ -19,6 +20,27 @@ api.interceptors.request.use(
     return config;
   },
   (error) => Promise.reject(error)
+);
+
+// Response Interceptor: Standardize error handling for 401, 403, 429, 500
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      const status = error.response.status;
+      if (status === 401) {
+        // Clear invalid/expired token and prompt re-authentication if token was present
+        if (localStorage.getItem('disaster_app_token')) {
+          localStorage.removeItem('disaster_app_token');
+          localStorage.removeItem('disaster_app_user');
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login?expired=true';
+          }
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
 );
 
 // Health & Dashboard

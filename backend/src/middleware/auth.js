@@ -15,9 +15,18 @@ const authenticateToken = (req, res, next) => {
   }
 
   try {
+    const jwtSecret = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? null : 'supersecretjwtkey_change_in_production');
+    if (!jwtSecret) {
+      console.error('[FATAL] JWT_SECRET environment variable is missing in production environment');
+      return res.status(500).json({
+        success: false,
+        error: { code: 'SERVER_CONFIG_ERROR', message: 'Authentication server misconfiguration' }
+      });
+    }
+
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || 'supersecretjwtkey_change_in_production',
+      jwtSecret,
       { algorithms: ['HS256'] }
     );
 
