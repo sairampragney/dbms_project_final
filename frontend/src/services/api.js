@@ -33,8 +33,8 @@ api.interceptors.response.use(
         if (localStorage.getItem('disaster_app_token')) {
           localStorage.removeItem('disaster_app_token');
           localStorage.removeItem('disaster_app_user');
-          if (window.location.pathname !== '/login') {
-            window.location.href = '/login?expired=true';
+          if (!window.location.hash.includes('#/login')) {
+            window.location.hash = '#/login?expired=true';
           }
         }
       }

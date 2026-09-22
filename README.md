@@ -1,6 +1,6 @@
 # Disaster Alert and Community Response App
 
-A production-style full-stack web application built to help communities manage disaster-related information, broadcast real-time emergency alerts, report local incidents, request emergency aid, locate safe shelters, and coordinate volunteer emergency response activities.
+A production-ready full-stack web application built to help communities manage disaster-related information, broadcast real-time emergency alerts, report local incidents, request emergency aid, locate safe shelters, and coordinate volunteer emergency response activities.
 
 ---
 
@@ -15,88 +15,138 @@ The platform provides a centralized, real-time coordination tool for three disti
 
 ---
 
-## 🛠️ Technology Stack
+## 🌐 Live Application & Deployment Topology
 
-* **Frontend**: React 18, Vite, React Router v6, Responsive CSS System, Axios.
-* **Backend**: Node.js, Express.js REST API, JWT Authentication, Role-Based Access Control (RBAC), Helmet, Express Rate Limit.
-* **Database**: MySQL 8.0+ normalized relational database (3NF), InnoDB engine, parameterized connection pooling, indexes, views, triggers.
-* **DevOps & Infrastructure**: Docker, Docker Compose, Nginx, environment configuration (`.env`).
-* **Deployment Architecture**: Vercel (Frontend SPA), Render (Backend Express Web Service), Managed MySQL (Database).
+The application is deployed across cloud infrastructure:
+
+```text
+GitHub Pages (Frontend)
+    ↓ HTTPS API Requests
+Render Web Service (Express REST API)
+    ↓
+MySQL Database (Relational Engine)
+```
+
+* **Frontend SPA Host**: [https://sairampragney.github.io/dbms_project_final/](https://sairampragney.github.io/dbms_project_final/) (GitHub Pages)
+* **Production API Base URL**: [https://dbms-project-final-7h2f.onrender.com/api](https://dbms-project-final-7h2f.onrender.com/api)
 
 ---
 
-## 🚀 Docker Quick Start (Local Development & Containerization)
+## 🛠️ Technology Stack
 
-The entire application stack (Frontend, Backend, MySQL Database) can be launched locally using Docker Compose:
+### Frontend
+* **Framework**: React 18
+* **Build Tool**: Vite
+* **Routing**: React Router v6 (`HashRouter` for GitHub Pages support)
+* **HTTP Client**: Axios
+* **Styling & UI**: Custom responsive CSS system with Lucide Icons
 
-### 1. Prerequisites
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose)
+### Backend
+* **Runtime**: Node.js & Express.js REST API
+* **Security & Auth**: JWT Authentication, Role-Based Access Control (RBAC), Helmet, Express Rate Limit
+* **Middleware**: CORS, Request Sanitization, Error Handling Middleware
 
-### 2. Single-Command Launch
+### Database
+* **Engine**: MySQL 8.0+ (3NF Relational Database Schema)
+* **Features**: Connection pooling, Transactions, Indexes, Prepared Statements, Views, Triggers
+
+### DevOps & Infrastructure
+* **CI/CD & Hosting**: GitHub Actions (`deploy.yml`), GitHub Pages (Frontend Host)
+* **Backend Hosting**: Render
+* **Containerization**: Docker, Docker Compose
+
+---
+
+## 💻 Local Development Setup
+
+### Prerequisites
+* Node.js (v18 or v20) & npm
+* Docker Desktop (optional, for multi-container local stack)
+
+### 1. Frontend Development
 ```bash
-# Clone the repository
-git clone https://github.com/sairampragney/dbms_project_final.git
-cd dbms_project_final
+cd frontend
+npm install
+npm run dev
+```
+Access frontend at `http://localhost:3000`.
 
-# Build and start all containers in detached mode
+### 2. Backend Development
+```bash
+cd backend
+npm install
+npm run dev
+```
+Access backend API at `http://localhost:5000/api`.
+
+### 3. Full-Stack Launch via Docker Compose
+```bash
 docker-compose up -d --build
 ```
+* **Frontend**: `http://localhost:3000`
+* **Backend API**: `http://localhost:5000/api`
+* **MySQL**: `localhost:3306`
 
-### 3. Container Services & Ports
-* **Frontend SPA (Nginx)**: `http://localhost:3000`
-* **Backend REST API (Express)**: `http://localhost:5000/api/v1`
-* **MySQL Database**: `localhost:3306` (Database: `disaster_response_db`)
+---
 
-### 4. Stopping Container Services
-```bash
-docker-compose down -v
-```
+## 🔑 Environment Variables
+
+### Frontend (`frontend/.env`)
+| Variable | Description | Default / Production Value |
+|---|---|---|
+| `VITE_API_BASE_URL` | Base API URL for backend calls | `https://dbms-project-final-7h2f.onrender.com/api` |
+
+### Backend (`backend/.env`)
+| Variable | Description | Example / Default |
+|---|---|---|
+| `PORT` | Express server port | `5000` |
+| `DB_HOST` | MySQL hostname | `localhost` |
+| `DB_USER` | MySQL user | `root` |
+| `DB_PASSWORD` | MySQL password | `rootpassword` |
+| `DB_NAME` | MySQL database name | `disaster_response_db` |
+| `JWT_SECRET` | Secret key for JWT signing | `super_secret_jwt_key` |
+| `CORS_ORIGIN` | Allowed CORS origins | `https://sairampragney.github.io` |
 
 ---
 
 ## 📁 Repository Structure
 
-```
+```text
 .
-├── PRD.md                  # Product Requirements Document
-├── AGENTS.md               # Guidelines & Rules for AI Agents (Jules)
-├── README.md               # Project Overview & Setup Guide
-├── docker-compose.yml      # Multi-container Docker Compose file
-├── .env.example            # Environment variables template
-├── .gitignore              # Git ignore rules
-├── docs/                   # Architecture & System Specifications
-│   ├── architecture.md     # High-Level Architecture & Deployment Topology
-│   ├── database-design.md  # 3NF Relational Schema, Tables, Views & Triggers
-│   ├── api-design.md       # REST API Endpoints Specification
-│   └── development-plan.md # 10-Phase Implementation Roadmap
-├── database/               # MySQL Schema & Seed SQL scripts
-│   ├── schema.sql          # DDL table creation, views, triggers, constraints
-│   ├── seed.sql            # Seed demo data
-│   └── validate_db.py      # Schema syntax verification script
-├── backend/                # Express REST API Server
-│   ├── src/                # Controllers, routes, models, middleware
-│   ├── tests/              # Automated API & security integration tests
-│   └── Dockerfile          # Backend container build script
-└── frontend/               # React / Vite Single Page Application
-    ├── src/                # Pages, components, services, context
-    ├── nginx.conf          # Nginx production configuration
-    └── Dockerfile          # Multi-stage frontend container build script
+├── .github/workflows/
+│   ├── ci.yml               # Automated CI workflow
+│   └── deploy.yml           # GitHub Pages deployment workflow
+├── backend/                 # Express REST API Server
+│   ├── src/                 # Controllers, routes, models, middleware
+│   ├── tests/               # Automated API & security integration tests
+│   └── Dockerfile           # Backend container setup
+├── database/                # MySQL Schema, Seeds & Migration scripts
+│   ├── schema.sql           # DDL schema definitions
+│   └── seed.sql             # Demo seed dataset
+├── docs/                    # Architecture & system specifications
+├── frontend/                # React / Vite Single Page Application
+│   ├── src/                 # React components, pages, context, services
+│   ├── index.html           # HTML entry point with app metadata
+│   ├── package.json         # Frontend dependencies & scripts
+│   └── vite.config.js       # Vite build & base path config (/dbms_project_final/)
+├── docker-compose.yml       # Multi-container local deployment
+├── PRD.md                   # Product Requirements Document
+└── README.md                # Project README
 ```
 
 ---
 
-## 📖 System Documentation
+## 🚀 GitHub Pages Deployment Setup
 
-Detailed technical documentation is available in the `docs/` folder:
-
-* **[PRD (`PRD.md`)](./PRD.md)**: Product vision, user roles, functional requirements, and non-functional goals.
-* **[Agent Instructions (`AGENTS.md`)](./AGENTS.md)**: Coding standards, database rules, REST conventions, and Git workflow.
-* **[Architecture Overview (`docs/architecture.md`)](./docs/architecture.md)**: 3-tier component architecture, container setup, and deployment flow.
-* **[Database Design (`docs/database-design.md`)](./docs/database-design.md)**: Complete database schema, normalization analysis, entity relationships, views, and triggers.
-* **[API Design (`docs/api-design.md`)](./docs/api-design.md)**: RESTful routes, request payloads, response envelopes, and HTTP status codes.
-* **[Development Roadmap (`docs/development-plan.md`)](./docs/development-plan.md)**: 10-phase sequential development plan.
+To deploy the frontend to GitHub Pages automatically via GitHub Actions:
+1. Go to repository **Settings** -> **Pages**.
+2. Under **Build and deployment** -> **Source**, select **GitHub Actions**.
+3. Push changes to the `main` branch. The `.github/workflows/deploy.yml` workflow will automatically build `frontend/` and deploy `frontend/dist` to `https://sairampragney.github.io/dbms_project_final/`.
 
 ---
 
-## 📜 License
-This project is developed as part of an advanced university DBMS full-stack application.
+## 🔒 Security & Best Practices
+
+* Zero secrets committed to frontend source or git.
+* HTTPS enforced for production API communication.
+* Role-Based Access Control (RBAC) enforced on protected REST routes.
