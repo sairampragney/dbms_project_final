@@ -7,10 +7,19 @@ const pool = require('./db');
  * Non-destructive: Never drops tables or wipes existing production data.
  */
 async function initDb() {
-  console.log('[DB Init] Starting idempotent database schema & seed initialization check...');
+  console.log('[DB Init] Starting idempotent database schema & migration check...');
   let conn;
   try {
     conn = await pool.getConnection();
+
+    // 0. Schema Migrations Tracking Table
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS schema_migrations (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          migration_name VARCHAR(255) NOT NULL UNIQUE,
+          executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
 
     // 1. Users Table
     await conn.query(`

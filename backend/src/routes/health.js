@@ -25,4 +25,22 @@ router.get('/health', async (req, res, next) => {
   }
 });
 
+// Production Readiness Endpoint
+router.get('/ready', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT 1');
+    if (rows) {
+      return res.status(200).json({
+        success: true,
+        data: { ready: true, database: 'OK', timestamp: new Date().toISOString() }
+      });
+    }
+  } catch (err) {
+    return res.status(503).json({
+      success: false,
+      error: { code: 'NOT_READY', message: 'Database dependency unavailable: ' + err.message }
+    });
+  }
+});
+
 module.exports = router;

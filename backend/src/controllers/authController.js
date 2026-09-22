@@ -28,9 +28,10 @@ class AuthModel {
 class AuthController {
   static async register(req, res, next) {
     try {
-      const { fullName, email, password, phone, role } = req.body;
+      const { fullName, email, password, phone } = req.body;
+      const normalizedEmail = (email || '').trim().toLowerCase();
 
-      const existingUser = await AuthModel.findByEmail(email);
+      const existingUser = await AuthModel.findByEmail(normalizedEmail);
       if (existingUser) {
         return res.status(400).json({
           success: false,
@@ -42,12 +43,13 @@ class AuthController {
       }
 
       const passwordHash = await bcrypt.hash(password, 10);
+      // Hardened: Public registration ALWAYS assigns CITIZEN role regardless of client payload
       const userId = await AuthModel.createUser({
         fullName,
-        email,
+        email: normalizedEmail,
         passwordHash,
         phone,
-        role
+        role: 'CITIZEN'
       });
 
       const user = await AuthModel.findById(userId);
@@ -73,14 +75,26 @@ class AuthController {
   static async login(req, res, next) {
     try {
       const { email, password } = req.body;
+      const normalizedEmail = (email || '').trim().toLowerCase();
 
-      const user = await AuthModel.findByEmail(email);
+      const user = await AuthModel.findByEmail(normalizedEmail);
       if (!user) {
         return res.status(401).json({
           success: false,
           error: {
             code: 'INVALID_CREDENTIALS',
             message: 'Invalid email or password'
+          }
+        });
+      }
+
+      // Hardened: Enforce active user status check
+      if (user.is_active === false || user.is_active === 0) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'ACCOUNT_DISABLED',
+            message: 'Account has been disabled. Please contact system administration.'
           }
         });
       }
