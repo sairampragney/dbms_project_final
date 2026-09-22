@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Activity, LifeBuoy, Home, Users, ShieldAlert, ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
+import { AlertTriangle, Activity, LifeBuoy, Home, Users, ShieldAlert, ArrowRight, RefreshCw, AlertCircle, Phone } from 'lucide-react';
 import { getDashboardStats, getAlerts } from '../services/api';
 import { SeverityBadge, StatusBadge } from '../components/Badges';
 
@@ -50,11 +50,15 @@ export default function DashboardPage() {
       <div className="emergency-hotline-bar" style={{ borderRadius: '0.5rem', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <ShieldAlert size={18} style={{ color: '#ef4444' }} />
-          <span><strong>Emergency Operations Center:</strong> Active Monitoring In Progress</span>
+          <span><strong>Emergency Operations Center (India):</strong> Active Monitoring In Progress</span>
         </div>
         <div className="hotline-pills">
-          <span>Police/Fire: <strong className="hotline-pill">911</strong></span>
-          <span>Aid Hotline: <strong className="hotline-pill">1-800-555-0199</strong></span>
+          <a href="tel:112" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <span>Pan-India Emergency: <strong className="hotline-pill" style={{ backgroundColor: '#ef4444', color: '#fff' }}>🚨 Call 112</strong></span>
+          </a>
+          <span>Police: <strong className="hotline-pill">100 / 112</strong></span>
+          <span>Fire: <strong className="hotline-pill">101 / 112</strong></span>
+          <span>Ambulance: <strong className="hotline-pill">108 / 112</strong></span>
           <button onClick={fetchDashboardData} className="btn btn-outline" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', color: '#fff', borderColor: '#475569' }}>
             <RefreshCw size={12} /> Refresh
           </button>
@@ -68,8 +72,8 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <h1 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '0.5rem' }}>Community Emergency Response Dashboard</h1>
-      <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>Real-time database aggregated metrics & active disaster updates.</p>
+      <h1 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '0.5rem' }}>Disaster Alert & Response Network (India)</h1>
+      <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>Real-time database aggregated metrics & active disaster updates. Primary Geography: Telangana / Andhra Pradesh & Pan-India.</p>
 
       {/* Real-time Metrics Grid */}
       <div className="metrics-grid">
@@ -119,19 +123,23 @@ export default function DashboardPage() {
         {/* Quick Action Cards */}
         <div style={{ backgroundColor: '#ffffff', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Activity size={20} style={{ color: '#2563eb' }} /> Quick Actions
+            <Activity size={20} style={{ color: '#2563eb' }} /> Quick Emergency Actions
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <a href="tel:112" className="btn btn-danger" style={{ justifyContent: 'space-between', padding: '0.75rem 1rem', textDecoration: 'none' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>🚨 Emergency: Call 112</span>
+              <Phone size={16} />
+            </a>
             <Link to="/incidents" className="btn btn-outline" style={{ justifyContent: 'space-between', padding: '0.75rem 1rem' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Activity size={16} /> Report an Incident</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Activity size={16} /> 🚨 Report Incident</span>
               <ArrowRight size={16} />
             </Link>
-            <Link to="/requests" className="btn btn-danger" style={{ justifyContent: 'space-between', padding: '0.75rem 1rem' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><LifeBuoy size={16} /> Request Emergency Aid</span>
+            <Link to="/requests" className="btn btn-outline" style={{ justifyContent: 'space-between', padding: '0.75rem 1rem' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><LifeBuoy size={16} /> 🆘 Request Help</span>
               <ArrowRight size={16} />
             </Link>
             <Link to="/locations" className="btn btn-outline" style={{ justifyContent: 'space-between', padding: '0.75rem 1rem' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Home size={16} /> Find Safe Shelter</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Home size={16} /> 📍 Find Safe Shelter</span>
               <ArrowRight size={16} />
             </Link>
             <Link to="/volunteers" className="btn btn-primary" style={{ justifyContent: 'space-between', padding: '0.75rem 1rem' }}>

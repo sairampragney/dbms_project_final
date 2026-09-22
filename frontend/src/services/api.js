@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://dbms-project-final-7h2f.onrender.com/api';
+// Default base URL falls back to local API v1, overridden in production via VITE_API_BASE_URL env var
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

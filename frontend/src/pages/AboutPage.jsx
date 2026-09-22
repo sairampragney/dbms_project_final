@@ -6,10 +6,10 @@ export default function AboutPage() {
     <div style={{ maxWidth: '900px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-          <ShieldAlert style={{ color: '#dc2626' }} size={32} /> About Disaster Alert & Response App
+          <ShieldAlert style={{ color: '#dc2626' }} size={32} /> About Disaster Alert & Response App (India)
         </h1>
         <p style={{ color: '#64748b', marginTop: '0.5rem', fontSize: '1rem' }}>
-          An advanced full-stack disaster management and community emergency response platform.
+          An advanced full-stack disaster management and community emergency response platform tailored for India.
         </p>
       </div>
 
@@ -19,7 +19,7 @@ export default function AboutPage() {
             <BookOpen size={20} style={{ color: '#2563eb' }} /> Mission & Vision
           </h3>
           <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: '1.6' }}>
-            Designed to empower local communities during critical disaster events by providing real-time disaster warnings, rapid incident reporting, emergency aid request triage, shelter occupancy tracking, and volunteer response dispatch.
+            Designed to empower Indian citizens and disaster management authorities during critical events (such as floods, cyclones, heatwaves, and urban flooding) by providing real-time disaster warnings, rapid incident reporting, emergency aid request triage, shelter occupancy tracking, and volunteer response dispatch.
           </p>
         </div>
 
@@ -31,7 +31,7 @@ export default function AboutPage() {
             <li><strong>Frontend:</strong> React 18, Vite, React Router v6</li>
             <li><strong>Backend REST API:</strong> Node.js, Express.js, JWT, Bcrypt</li>
             <li><strong>Database:</strong> MySQL 8.0+ normalized relational DB (3NF)</li>
-            <li><strong>Containerization:</strong> Docker & Docker Compose</li>
+            <li><strong>Hosting:</strong> Firebase Hosting (Frontend) & Cloud Run / Node (Backend)</li>
           </ul>
         </div>
       </div>
@@ -43,7 +43,7 @@ export default function AboutPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', fontSize: '0.9rem', color: '#334155' }}>
           <div>
             <h4 style={{ fontWeight: '700', marginBottom: '0.25rem' }}>Citizens</h4>
-            <p>Browse active warnings, report local hazards, request emergency assistance, or locate safe evacuation shelters.</p>
+            <p>Browse active warnings, report local hazards, request emergency assistance, or locate safe evacuation shelters across Indian districts.</p>
           </div>
           <div>
             <h4 style={{ fontWeight: '700', marginBottom: '0.25rem' }}>Volunteers</h4>
@@ -58,13 +58,15 @@ export default function AboutPage() {
 
       <div style={{ backgroundColor: '#1e293b', color: '#f8fafc', padding: '1.5rem', borderRadius: '0.75rem' }}>
         <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <PhoneCall size={20} style={{ color: '#ef4444' }} /> Emergency Contact Directory
+          <PhoneCall size={20} style={{ color: '#ef4444' }} /> Indian Emergency Contact Directory
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', fontSize: '0.9rem' }}>
-          <div>National Emergency Line: <strong>911</strong></div>
-          <div>Disaster Triage Line: <strong>1-800-555-0199</strong></div>
-          <div>Red Cross Shelters: <strong>1-800-733-2767</strong></div>
-          <div>FEMA Disaster Aid: <strong>1-800-621-3362</strong></div>
+          <div>Pan-India Emergency: <a href="tel:112" style={{ color: '#ef4444', fontWeight: 'bold' }}>Call 112</a></div>
+          <div>Police Assistance: <strong>100 / 112</strong></div>
+          <div>Fire Emergency: <strong>101 / 112</strong></div>
+          <div>Ambulance / Medical: <strong>108 / 112</strong></div>
+          <div>NDRF Control Room: <strong>1078 / 011-24363260</strong></div>
+          <div>Disaster Management (MHA): <strong>011-23438252</strong></div>
         </div>
       </div>
     </div>

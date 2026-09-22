@@ -26,6 +26,17 @@ class AuthModel {
 }
 
 class AuthController {
+  static getJwtSecret() {
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      const err = new Error('JWT_SECRET environment variable is missing');
+      err.statusCode = 500;
+      err.code = 'SERVER_CONFIG_ERROR';
+      throw err;
+    }
+    return jwtSecret;
+  }
+
   static async register(req, res, next) {
     try {
       const { fullName, email, password, phone } = req.body;
@@ -52,10 +63,11 @@ class AuthController {
         role: 'CITIZEN'
       });
 
+      const jwtSecret = AuthController.getJwtSecret();
       const user = await AuthModel.findById(userId);
       const token = jwt.sign(
         { id: user.id, email: user.email, role: user.role },
-        process.env.JWT_SECRET || 'supersecretjwtkey_change_in_production',
+        jwtSecret,
         { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
       );
 
@@ -68,6 +80,12 @@ class AuthController {
         }
       });
     } catch (err) {
+      if (err.code === 'SERVER_CONFIG_ERROR') {
+        return res.status(500).json({
+          success: false,
+          error: { code: err.code, message: err.message }
+        });
+      }
       next(err);
     }
   }
@@ -110,9 +128,10 @@ class AuthController {
         });
       }
 
+      const jwtSecret = AuthController.getJwtSecret();
       const token = jwt.sign(
         { id: user.id, email: user.email, role: user.role },
-        process.env.JWT_SECRET || 'supersecretjwtkey_change_in_production',
+        jwtSecret,
         { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
       );
 
@@ -135,6 +154,12 @@ class AuthController {
         }
       });
     } catch (err) {
+      if (err.code === 'SERVER_CONFIG_ERROR') {
+        return res.status(500).json({
+          success: false,
+          error: { code: err.code, message: err.message }
+        });
+      }
       next(err);
     }
   }

@@ -252,7 +252,7 @@ export default function LocationsPage() {
           </div>
           <div className="form-group">
             <label>Shelter Contact Hotline Phone</label>
-            <input type="text" className="form-control" value={registerForm.contactPhone} onChange={(e) => setRegisterForm({ ...registerForm, contactPhone: e.target.value })} placeholder="+1 (555) 900-1000" />
+            <input type="text" className="form-control" value={registerForm.contactPhone} onChange={(e) => setRegisterForm({ ...registerForm, contactPhone: e.target.value })} placeholder="+91 98765 43210" />
           </div>
           <div className="modal-footer">
             <button type="button" onClick={() => setIsRegisterModalOpen(false)} className="btn btn-outline">Cancel</button>
